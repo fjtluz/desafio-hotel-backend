@@ -9,7 +9,6 @@ import com.senior.desafiohotel.repository.CheckInRepository;
 import com.senior.desafiohotel.repository.HospedeRepository;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -17,11 +16,6 @@ import java.util.Optional;
 
 @Service
 public class HospedeService {
-
-    private final double VALOR_DIARIA_UTIL = 120.00;
-    private final double VALOR_DIARA_NAO_UTIL = 150.00;
-    private final double ACRESCIMO_UTIL = 15.00;
-    private final double ACRESCIMO_NAO_UTIL = 20.00;
 
     private final HospedeRepository hospedeRepository;
     private final CheckInRepository checkInRepository;
@@ -43,7 +37,7 @@ public class HospedeService {
             }
         }
 
-        List<Hospede> possiveisHospedes = this.hospedeRepository.searchAllByNomeLikeOrTelefoneLike(hospedeDTO.getNome(), hospedeDTO.getTelefone());
+        List<Hospede> possiveisHospedes = this.hospedeRepository.searchAllByNomeLikeOrTelefoneLikeOrDocumentoLike(hospedeDTO.getDocumento(), hospedeDTO.getNome(), hospedeDTO.getTelefone());
 
         return possiveisHospedes.stream().map(hospede -> {
             HospedeDTO dto = HospedeDTO.transforma(hospede);
@@ -91,7 +85,7 @@ public class HospedeService {
         Hospede hospede = new Hospede(hospedeDTO.getDocumento(), hospedeDTO.getNome(), hospedeDTO.getTelefone());
 
         if (this.hospedeRepository.findById(hospede.getDocumento()).isEmpty()) {
-            return new RespostaDTO<>("Hospede com documento '" + hospede.getDocumento() + "' não existe no sistema!");
+            return new RespostaDTO<>("Hospede com documento '" + hospede.getDocumento() + "' não encontrado no sistema!");
         }
 
         hospede = this.hospedeRepository.save(hospede);
@@ -104,7 +98,7 @@ public class HospedeService {
         Optional<Hospede> optionalHospede = this.hospedeRepository.findById(documento);
 
         if (optionalHospede.isEmpty()) {
-            return new RespostaDTO<>("Hospede com documento '" + documento + "' não existe no sistema!");
+            return new RespostaDTO<>("Hospede com documento '" + documento + "' não encontrado no sistema!");
         }
 
         Hospede hospede = optionalHospede.get();
@@ -136,14 +130,18 @@ public class HospedeService {
             LocalDateTime dataEntrada = checkIn.getCheckInId().getDataEntrada();
             LocalDateTime dataSaida = checkIn.getCheckInId().getDataSaida();
 
+            double VALOR_DIARIA_UTIL = 120.00;
+            double VALOR_DIARA_NAO_UTIL = 150.00;
             while (dataEntrada.toLocalDate().isBefore(dataSaida.toLocalDate())) {
 
                 boolean isUtil = dataEntrada.getDayOfWeek().getValue() < 6;
 
-                valorHospedagem += isUtil ? this.VALOR_DIARIA_UTIL : this.VALOR_DIARA_NAO_UTIL;
+                valorHospedagem += isUtil ? VALOR_DIARIA_UTIL : VALOR_DIARA_NAO_UTIL;
 
                 if (checkIn.isAdicionalVeiculo()) {
-                    valorHospedagem += isUtil ? this.ACRESCIMO_UTIL : this.ACRESCIMO_NAO_UTIL;
+                    double ACRESCIMO_UTIL = 15.00;
+                    double ACRESCIMO_NAO_UTIL = 20.00;
+                    valorHospedagem += isUtil ? ACRESCIMO_UTIL : ACRESCIMO_NAO_UTIL;
                 }
 
                 dataEntrada = dataEntrada.plusDays(1);
@@ -153,7 +151,7 @@ public class HospedeService {
             if (dataSaida.isAfter(diariaExtra)) {
                 boolean isUtil = dataSaida.getDayOfWeek().getValue() < 6;
 
-                valorHospedagem += isUtil ? this.VALOR_DIARIA_UTIL : this.VALOR_DIARA_NAO_UTIL;
+                valorHospedagem += isUtil ? VALOR_DIARIA_UTIL : VALOR_DIARA_NAO_UTIL;
             }
 
             if (dataSaida.isAfter(dataUltimaHospedagem)) {

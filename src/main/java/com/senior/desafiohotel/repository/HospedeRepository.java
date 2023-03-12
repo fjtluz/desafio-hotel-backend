@@ -11,6 +11,9 @@ import java.util.List;
 @Repository
 public interface HospedeRepository extends JpaRepository<Hospede, String> {
 
-    @Query("SELECT hos FROM Hospede hos WHERE UPPER(hos.nome) LIKE CONCAT('%', UPPER(:nome), '%') OR UPPER(hos.telefone) LIKE CONCAT('%', UPPER(:telefone), '%')")
-    List<Hospede> searchAllByNomeLikeOrTelefoneLike(@Param("nome") String nome, @Param("telefone") String telefone);
+    @Query("SELECT hos FROM Hospede hos " +
+            "WHERE UPPER(hos.documento) LIKE CONCAT('%', UPPER(:documento), '%') " +
+            "   OR UPPER(hos.nome) LIKE CONCAT('%', UPPER(:nome), '%') " +
+            "   OR UPPER(hos.telefone) LIKE CONCAT('%', UPPER(:telefone), '%')")
+    List<Hospede> searchAllByNomeLikeOrTelefoneLikeOrDocumentoLike(@Param("documento") String documento, @Param("nome") String nome, @Param("telefone") String telefone);
 }
